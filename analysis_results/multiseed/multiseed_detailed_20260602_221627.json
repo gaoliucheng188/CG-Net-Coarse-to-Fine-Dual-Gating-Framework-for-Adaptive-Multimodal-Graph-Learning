@@ -1,0 +1,173 @@
+{
+  "mutag": [
+    {
+      "seed": 42,
+      "dataset": "mutag",
+      "baseline_full": 0.7789,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.7749,
+      "soft_only": 0.8347,
+      "ours": 0.8347,
+      "hard_bypass_count": 189,
+      "avg_text_score": 0.472402
+    },
+    {
+      "seed": 123,
+      "dataset": "mutag",
+      "baseline_full": 0.7789,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.7749,
+      "soft_only": 0.8327,
+      "ours": 0.8327,
+      "hard_bypass_count": 189,
+      "avg_text_score": 0.453545
+    },
+    {
+      "seed": 456,
+      "dataset": "mutag",
+      "baseline_full": 0.7789,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.7749,
+      "soft_only": 0.8406,
+      "ours": 0.8406,
+      "hard_bypass_count": 189,
+      "avg_text_score": 0.453862
+    },
+    {
+      "seed": 789,
+      "dataset": "mutag",
+      "baseline_full": 0.7789,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.7749,
+      "soft_only": 0.8386,
+      "ours": 0.8386,
+      "hard_bypass_count": 189,
+      "avg_text_score": 0.460907
+    },
+    {
+      "seed": 1024,
+      "dataset": "mutag",
+      "baseline_full": 0.7789,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.7749,
+      "soft_only": 0.8347,
+      "ours": 0.8347,
+      "hard_bypass_count": 189,
+      "avg_text_score": 0.456774
+    }
+  ],
+  "nlm_chem": [
+    {
+      "seed": 42,
+      "dataset": "nlm_chem",
+      "baseline_full": 0.9667,
+      "baseline_notext": 1.0,
+      "hard_only": 0.9667,
+      "soft_only": 1.0,
+      "ours": 1.0,
+      "hard_bypass_count": 27,
+      "avg_text_score": 0.008239
+    },
+    {
+      "seed": 123,
+      "dataset": "nlm_chem",
+      "baseline_full": 0.9667,
+      "baseline_notext": 1.0,
+      "hard_only": 0.9667,
+      "soft_only": 1.0,
+      "ours": 1.0,
+      "hard_bypass_count": 27,
+      "avg_text_score": 0.011681
+    },
+    {
+      "seed": 456,
+      "dataset": "nlm_chem",
+      "baseline_full": 0.9667,
+      "baseline_notext": 1.0,
+      "hard_only": 0.9667,
+      "soft_only": 1.0,
+      "ours": 1.0,
+      "hard_bypass_count": 27,
+      "avg_text_score": 0.008375
+    },
+    {
+      "seed": 789,
+      "dataset": "nlm_chem",
+      "baseline_full": 0.9667,
+      "baseline_notext": 1.0,
+      "hard_only": 0.9667,
+      "soft_only": 1.0,
+      "ours": 1.0,
+      "hard_bypass_count": 27,
+      "avg_text_score": 0.011773
+    },
+    {
+      "seed": 1024,
+      "dataset": "nlm_chem",
+      "baseline_full": 0.9667,
+      "baseline_notext": 1.0,
+      "hard_only": 0.9667,
+      "soft_only": 1.0,
+      "ours": 1.0,
+      "hard_bypass_count": 27,
+      "avg_text_score": 0.006923
+    }
+  ],
+  "pqaref": [
+    {
+      "seed": 42,
+      "dataset": "pqaref",
+      "baseline_full": 0.9349,
+      "baseline_notext": 0.9349,
+      "hard_only": 0.9349,
+      "soft_only": 0.9349,
+      "ours": 0.9349,
+      "hard_bypass_count": 236,
+      "avg_text_score": 0.954299
+    },
+    {
+      "seed": 123,
+      "dataset": "pqaref",
+      "baseline_full": 0.9349,
+      "baseline_notext": 0.9349,
+      "hard_only": 0.9349,
+      "soft_only": 0.9349,
+      "ours": 0.9349,
+      "hard_bypass_count": 236,
+      "avg_text_score": 0.954375
+    },
+    {
+      "seed": 456,
+      "dataset": "pqaref",
+      "baseline_full": 0.9349,
+      "baseline_notext": 0.9349,
+      "hard_only": 0.9349,
+      "soft_only": 0.9349,
+      "ours": 0.9349,
+      "hard_bypass_count": 236,
+      "avg_text_score": 0.954451
+    },
+    {
+      "seed": 789,
+      "dataset": "pqaref",
+      "baseline_full": 0.9349,
+      "baseline_notext": 0.9349,
+      "hard_only": 0.9349,
+      "soft_only": 0.9349,
+      "ours": 0.9349,
+      "hard_bypass_count": 236,
+      "avg_text_score": 0.954437
+    },
+    {
+      "seed": 1024,
+      "dataset": "pqaref",
+      "baseline_full": 0.9349,
+      "baseline_notext": 0.9349,
+      "hard_only": 0.9349,
+      "soft_only": 0.9349,
+      "ours": 0.9349,
+      "hard_bypass_count": 236,
+      "avg_text_score": 0.954521
+    }
+  ]
+}

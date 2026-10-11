@@ -1,0 +1,16 @@
+{
+  "dataset": "nlm_chem",
+  "tau": 0.7,
+  "n_test": 30,
+  "n_easy": 27,
+  "n_hard": 3,
+  "t_full_ms": 2.944256019592285,
+  "t_graph_ms": 2.5554943084716797,
+  "t_text_all_ms": 0.38876171112060515,
+  "t_text_per_ms": 0.012958723704020172,
+  "t_soft_per_ms": 232.80307333333343,
+  "t_cgnet_ms": 701.0035904795841,
+  "speedup_vs_full": 0.004200058401381374,
+  "text_time_avoided_ms": 0.34988554000854466,
+  "bypass_frac": 0.9
+}

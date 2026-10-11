@@ -1,0 +1,61 @@
+// Multimodal GNN Explainer Framework
+digraph {
+	rankdir=LR
+	splines=ortho
+	nodesep=0.6
+	ranksep=0.8
+	node [fontname=Helvetica fontsize=12 shape=box style=filled]
+	subgraph cluster_0 {
+		color="#E6F3FF" fontcolor="#333333" fontsize=16 label="I. Input & Preprocessing Layer
+(Multimodal Data Input)" pencolor="#B3D9FF" style=filled
+		graph_data [label="Graph Data
+(Adjacency A, Features X)" color="#B3D9FF" fillcolor="#CCE5FF"]
+		text_data [label="Text Data
+(Sequences/Documents)" color="#B3D9FF" fillcolor="#CCE5FF"]
+		image_data [label="Image Data
+(Pixel Grids)" color="#B3D9FF" fillcolor="#CCE5FF"]
+		preprocess [label="Preprocessing & Alignment
+(Tokenization, Normalization)" color="#B3D9FF" fillcolor="#FFFFFF" shape=component]
+		graph_data -> preprocess
+		text_data -> preprocess
+		image_data -> preprocess
+	}
+	subgraph cluster_1 {
+		color="#FFF5E6" fontcolor="#333333" fontsize=16 label="II. Multimodal Feature Extraction Layer
+(Tri-stream Analysis)" pencolor="#FFD9B3" style=filled
+		gcn [label="Graph Encoder
+(GCN/GAT Layers)" color="#FFD9B3" fillcolor="#FFE5CC"]
+		text_enc [label="Text Encoder
+(BERT/LSTM)" color="#FFD9B3" fillcolor="#FFE5CC"]
+		img_enc [label="Image Encoder
+(CNN/ResNet)" color="#FFD9B3" fillcolor="#FFE5CC"]
+		fusion [label="Multimodal Fusion
+(Attention / Concat)" color="#FFB366" fillcolor="#FFCC99" shape=Mrecord]
+		pred [label="Prediction Head
+(Softmax)" color="#FFD9B3" fillcolor="#FFFFFF"]
+		gcn -> fusion
+		text_enc -> fusion
+		img_enc -> fusion
+		fusion -> pred
+	}
+	subgraph cluster_2 {
+		color="#F2E6FF" fontcolor="#333333" fontsize=16 label="III. Explanation & Output Layer
+(GNNExplainer & Visualization)" pencolor="#D9B3FF" style=filled
+		explainer [label="GNN Explainer
+(Mask Optimization)" color="#D9B3FF" fillcolor="#E5CCFF" shape=diamond]
+		"subgraph" [label="Important Subgraph
+(Structure Explanation)" color="#D9B3FF" fillcolor="#FFFFFF"]
+		features [label="Feature Importance
+(Text/Image/Node Feats)" color="#D9B3FF" fillcolor="#FFFFFF"]
+		viz [label="Visualization
+(Heatmaps, Graphs)" color="#D9B3FF" fillcolor="#E5CCFF"]
+		explainer -> "subgraph"
+		explainer -> features
+		"subgraph" -> viz
+		features -> viz
+	}
+	preprocess -> gcn [label="Graph Stream"]
+	preprocess -> text_enc [label="Text Stream"]
+	preprocess -> img_enc [label="Image Stream"]
+	pred -> explainer [label="Backprop / Masking"]
+}

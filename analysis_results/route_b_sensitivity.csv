@@ -1,0 +1,16 @@
+Dataset,Tau,Route_B_Accuracy,Baseline_Accuracy
+mutag,0.1,0.7849,0.9283
+mutag,0.3,0.7849,0.9283
+mutag,0.5,0.7849,0.9283
+mutag,0.7,0.7849,0.9283
+mutag,0.9,0.7849,0.9283
+nlm_chem,0.1,0.9,0.9
+nlm_chem,0.3,0.9,0.9
+nlm_chem,0.5,0.9,0.9
+nlm_chem,0.7,0.9,0.9
+nlm_chem,0.9,0.9,0.9
+pqaref,0.1,0.9349,0.9349
+pqaref,0.3,0.9349,0.9349
+pqaref,0.5,0.9349,0.9349
+pqaref,0.7,0.9349,0.9349
+pqaref,0.9,0.9349,0.9349

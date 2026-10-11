@@ -1,0 +1,73 @@
+{
+  "dataset": "mutag",
+  "tau": 0.7,
+  "seeds": [
+    42,
+    123,
+    456,
+    789,
+    1024
+  ],
+  "rows": [
+    {
+      "seed": 42,
+      "exit": 0,
+      "baseline_full": 0.6494,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.6494,
+      "soft_only": 0.7371,
+      "ours": 0.7371,
+      "bypass_count": 189,
+      "bypass_total": 502,
+      "avg_text_attention": 0.458326
+    },
+    {
+      "seed": 123,
+      "exit": 0,
+      "baseline_full": 0.6494,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.6494,
+      "soft_only": 0.6514,
+      "ours": 0.6514,
+      "bypass_count": 189,
+      "bypass_total": 502,
+      "avg_text_attention": 0.719847
+    },
+    {
+      "seed": 456,
+      "exit": 0,
+      "baseline_full": 0.6494,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.6494,
+      "soft_only": 0.6494,
+      "ours": 0.6494,
+      "bypass_count": 189,
+      "bypass_total": 502,
+      "avg_text_attention": 0.605121
+    },
+    {
+      "seed": 789,
+      "exit": 0,
+      "baseline_full": 0.6494,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.6494,
+      "soft_only": 0.6494,
+      "ours": 0.6494,
+      "bypass_count": 189,
+      "bypass_total": 502,
+      "avg_text_attention": 0.605509
+    },
+    {
+      "seed": 1024,
+      "exit": 0,
+      "baseline_full": 0.6494,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.6494,
+      "soft_only": 0.755,
+      "ours": 0.755,
+      "bypass_count": 189,
+      "bypass_total": 502,
+      "avg_text_attention": 0.617864
+    }
+  ]
+}

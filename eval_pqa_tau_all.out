@@ -1,0 +1,130 @@
+==== PQA tau=0.1 2026年 07月 27日 星期一 21:57:27 CST ====
+Loading pqaref dataset for Explainer-Guided Gating...
+Loading multimodal features...
+Initializing Multi-modal GNN Model...
+[arch] fusion=concat project_concat=True text_dim=128 image_dim=128 disable_text=False disable_image=True pred_in=128 graph_dim_full=384 num_gc_layers=3
+[load] unexpected keys (first 8): ['celoss.weight']
+Pre-computing baseline predictions...
+
+Starting Architectural Ablation & Gating Evaluation (tau=0.1)...
+⚠️  Note: This run includes 'Soft Fusion Only' variant, which forces Explainer on ALL samples. It may take longer.
+
+===========================================================================
+🧩 Architectural Ablation Results (Dual Gating Framework) 🧩
+===========================================================================
+1. Baseline (Always Full)            : 0.9251
+2. Ablation (Always Drop Text)       : 0.9055
+---------------------------------------------------------------------------
+3. Variant A (Hard Router Only)      : 0.9121
+   -> Details: margin>0.1 drops text, else uses raw Full model.
+4. Variant B (Soft Fusion Only)      : 0.9088
+   -> Details: Forces Explainer on 100% samples (Heavy computation!).
+---------------------------------------------------------------------------
+🚀 OURS (Dual Gating Framework)      : 0.9088 🌟
+   -> Hard Bypassed Text (O(1))      : 303 / 307 samples
+   -> Avg Soft Text Attention (Rest) : 0.261514
+===========================================================================
+==== PQA tau=0.3 2026年 07月 27日 星期一 22:02:43 CST ====
+Loading pqaref dataset for Explainer-Guided Gating...
+Loading multimodal features...
+Initializing Multi-modal GNN Model...
+[arch] fusion=concat project_concat=True text_dim=128 image_dim=128 disable_text=False disable_image=True pred_in=128 graph_dim_full=384 num_gc_layers=3
+[load] unexpected keys (first 8): ['celoss.weight']
+Pre-computing baseline predictions...
+
+Starting Architectural Ablation & Gating Evaluation (tau=0.3)...
+⚠️  Note: This run includes 'Soft Fusion Only' variant, which forces Explainer on ALL samples. It may take longer.
+
+===========================================================================
+🧩 Architectural Ablation Results (Dual Gating Framework) 🧩
+===========================================================================
+1. Baseline (Always Full)            : 0.9251
+2. Ablation (Always Drop Text)       : 0.9055
+---------------------------------------------------------------------------
+3. Variant A (Hard Router Only)      : 0.9218
+   -> Details: margin>0.3 drops text, else uses raw Full model.
+4. Variant B (Soft Fusion Only)      : 0.9218
+   -> Details: Forces Explainer on 100% samples (Heavy computation!).
+---------------------------------------------------------------------------
+🚀 OURS (Dual Gating Framework)      : 0.9186 🌟
+   -> Hard Bypassed Text (O(1))      : 288 / 307 samples
+   -> Avg Soft Text Attention (Rest) : 0.502064
+===========================================================================
+==== PQA tau=0.5 2026年 07月 27日 星期一 22:07:59 CST ====
+Loading pqaref dataset for Explainer-Guided Gating...
+Loading multimodal features...
+Initializing Multi-modal GNN Model...
+[arch] fusion=concat project_concat=True text_dim=128 image_dim=128 disable_text=False disable_image=True pred_in=128 graph_dim_full=384 num_gc_layers=3
+[load] unexpected keys (first 8): ['celoss.weight']
+Pre-computing baseline predictions...
+
+Starting Architectural Ablation & Gating Evaluation (tau=0.5)...
+⚠️  Note: This run includes 'Soft Fusion Only' variant, which forces Explainer on ALL samples. It may take longer.
+
+===========================================================================
+🧩 Architectural Ablation Results (Dual Gating Framework) 🧩
+===========================================================================
+1. Baseline (Always Full)            : 0.9251
+2. Ablation (Always Drop Text)       : 0.9055
+---------------------------------------------------------------------------
+3. Variant A (Hard Router Only)      : 0.9251
+   -> Details: margin>0.5 drops text, else uses raw Full model.
+4. Variant B (Soft Fusion Only)      : 0.9088
+   -> Details: Forces Explainer on 100% samples (Heavy computation!).
+---------------------------------------------------------------------------
+🚀 OURS (Dual Gating Framework)      : 0.9088 🌟
+   -> Hard Bypassed Text (O(1))      : 280 / 307 samples
+   -> Avg Soft Text Attention (Rest) : 0.218619
+===========================================================================
+==== PQA tau=0.7 2026年 07月 27日 星期一 22:13:18 CST ====
+Loading pqaref dataset for Explainer-Guided Gating...
+Loading multimodal features...
+Initializing Multi-modal GNN Model...
+[arch] fusion=concat project_concat=True text_dim=128 image_dim=128 disable_text=False disable_image=True pred_in=128 graph_dim_full=384 num_gc_layers=3
+[load] unexpected keys (first 8): ['celoss.weight']
+Pre-computing baseline predictions...
+
+Starting Architectural Ablation & Gating Evaluation (tau=0.7)...
+⚠️  Note: This run includes 'Soft Fusion Only' variant, which forces Explainer on ALL samples. It may take longer.
+
+===========================================================================
+🧩 Architectural Ablation Results (Dual Gating Framework) 🧩
+===========================================================================
+1. Baseline (Always Full)            : 0.9251
+2. Ablation (Always Drop Text)       : 0.9055
+---------------------------------------------------------------------------
+3. Variant A (Hard Router Only)      : 0.9251
+   -> Details: margin>0.7 drops text, else uses raw Full model.
+4. Variant B (Soft Fusion Only)      : 0.9251
+   -> Details: Forces Explainer on 100% samples (Heavy computation!).
+---------------------------------------------------------------------------
+🚀 OURS (Dual Gating Framework)      : 0.9251 🌟
+   -> Hard Bypassed Text (O(1))      : 259 / 307 samples
+   -> Avg Soft Text Attention (Rest) : 0.920661
+===========================================================================
+==== PQA tau=0.9 2026年 07月 27日 星期一 22:18:35 CST ====
+Loading pqaref dataset for Explainer-Guided Gating...
+Loading multimodal features...
+Initializing Multi-modal GNN Model...
+[arch] fusion=concat project_concat=True text_dim=128 image_dim=128 disable_text=False disable_image=True pred_in=128 graph_dim_full=384 num_gc_layers=3
+[load] unexpected keys (first 8): ['celoss.weight']
+Pre-computing baseline predictions...
+
+Starting Architectural Ablation & Gating Evaluation (tau=0.9)...
+⚠️  Note: This run includes 'Soft Fusion Only' variant, which forces Explainer on ALL samples. It may take longer.
+
+===========================================================================
+🧩 Architectural Ablation Results (Dual Gating Framework) 🧩
+===========================================================================
+1. Baseline (Always Full)            : 0.9251
+2. Ablation (Always Drop Text)       : 0.9055
+---------------------------------------------------------------------------
+3. Variant A (Hard Router Only)      : 0.9251
+   -> Details: margin>0.9 drops text, else uses raw Full model.
+4. Variant B (Soft Fusion Only)      : 0.9088
+   -> Details: Forces Explainer on 100% samples (Heavy computation!).
+---------------------------------------------------------------------------
+🚀 OURS (Dual Gating Framework)      : 0.9088 🌟
+   -> Hard Bypassed Text (O(1))      : 166 / 307 samples
+   -> Avg Soft Text Attention (Rest) : 0.401086
+===========================================================================

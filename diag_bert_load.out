@@ -1,0 +1,13 @@
+﻿conda : E:\Miniconda\envs\pytorch\lib\site-packages\torch\_utils.py:776: UserWarning: TypedStorage is deprecated. It wi
+ll be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you ar
+e using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+At line:1 char:302
++ ... tch {} } }; conda run -n pytorch python -u diag_bert_load.py > diag_b ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (E:\Miniconda\en...ensor.storage():String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  return self.fget.__get__(instance, owner)()
+hidden_size=768 fc_in=768 fc_out=300
+no text_encoder keys in checkpoint top-level; keys sample: ['epoch', 'model_type', 'optimizer', 'model_state', 'optimizer_state', 'cg']
+DIAG_DONE

@@ -1,0 +1,2 @@
+Dataset,Variant,Baseline_Variant,Baseline_F+,Gated_F+,F+_Improvement,Baseline_F-,Gated_F-,F-_Improvement
+mutag,Gated,Baseline,0.0,0.0044688788436403155,0.0044688788436403155,0.3689469397068023,0.253205460189973,-0.11574147951682934

@@ -1,0 +1,61 @@
+# 消融实验所有运行命令
+# 运行方式：复制粘贴到终端执行，或使用脚本 run_all_ablation_commands.py --run
+
+## MUTAG 数据集 (注意：使用 --dataset mutag 而不是 tud_mutag)
+
+### A0: 完整多模态 (结构+文本+图像，注意力融合)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset mutag --multimodal --fusion-method attention
+
+### A1: 结构+图像 (禁用文本)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset mutag --multimodal --fusion-method attention --disable-text
+
+### A2: 结构+文本 (禁用图像)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset mutag --multimodal --fusion-method attention --disable-image
+
+### A3: 仅结构 (单模态基准)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset mutag
+
+## NLM_CHEM 数据集
+
+### A0: 完整多模态 (结构+文本+图像，注意力融合)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset nlm_chem --multimodal --fusion-method attention
+
+### A1: 结构+图像 (禁用文本)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset nlm_chem --multimodal --fusion-method attention --disable-text
+
+### A2: 结构+文本 (禁用图像)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset nlm_chem --multimodal --fusion-method attention --disable-image
+
+### A3: 仅结构 (单模态基准)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset nlm_chem
+
+## PQAREF 数据集
+
+### A0: 完整多模态 (结构+文本+图像，注意力融合)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset pqaref --multimodal --fusion-method attention
+
+### A1: 结构+图像 (禁用文本)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset pqaref --multimodal --fusion-method attention --disable-text
+
+### A2: 结构+文本 (禁用图像)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset pqaref --multimodal --fusion-method attention --disable-image
+
+### A3: 仅结构 (单模态基准)
+python train.py --epochs 1000 --hidden-dim 128 --output-dim 128 --num-gc-layers 3 --dropout 0.2 --weight-decay 0.0005 --train-ratio 0.7 --gpu --cuda 0 --dataset pqaref
+
+## 批量运行脚本
+
+# 使用自动脚本运行所有实验（顺序执行）：
+python run_all_ablation_commands.py --run
+
+# 或使用原始消融脚本：
+python ablation_experiment.py
+
+## 说明
+
+- 每个实验运行1000个epoch
+- 使用注意力融合方法（attention）
+- 隐藏维度128，输出维度128
+- 3层GCN，dropout 0.2，权重衰减0.0005
+- 训练比例0.7，使用GPU CUDA 0
+- 总共12个实验，每个可能需要几分钟到几小时

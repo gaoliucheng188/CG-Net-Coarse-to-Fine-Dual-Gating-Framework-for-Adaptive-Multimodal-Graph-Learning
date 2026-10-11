@@ -1,0 +1,2 @@
+Dataset,Variant,Baseline_Variant,Baseline_F+,Gated_F+,F+_Improvement,Baseline_F-,Gated_F-,F-_Improvement
+nlm_chem,Gated,Baseline,0.0,0.0037072300910949685,0.0037072300910949685,0.13449609279632563,-0.0025755862394968997,-0.13707167903582254

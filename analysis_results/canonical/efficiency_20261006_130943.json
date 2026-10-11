@@ -1,0 +1,16 @@
+{
+  "dataset": "pqaref",
+  "tau": 0.7,
+  "n_test": 307,
+  "n_easy": 236,
+  "n_hard": 71,
+  "t_full_ms": 32.03932189941407,
+  "t_graph_ms": 26.732235717773438,
+  "t_text_all_ms": 5.307086181640629,
+  "t_text_per_ms": 0.01728692567309651,
+  "t_soft_per_ms": 260.0939560260606,
+  "t_cgnet_ms": 18494.630485290865,
+  "speedup_vs_full": 0.0017323580444008088,
+  "text_time_avoided_ms": 4.079714458850777,
+  "bypass_frac": 0.7687296416938111
+}

@@ -1,0 +1,36 @@
+nohup: ignoring input
+CUDA 0
+Using multimodal features - text_dim: 128, image_dim: 128, fusion: concat
+Loaded PQAref dataset: 3149 nodes, 18012 edges, 2 classes (feature_dim=1024)
+Applied class weights to CrossEntropyLoss.
+epoch: 0 | loss: 0.6681 | train_acc: 0.8766 | val_acc: 0.8623 | test_acc: 0.8795 | time: 198.96s
+epoch: 10 | loss: 0.2786 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 20 | loss: 0.2548 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 30 | loss: 0.2444 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 40 | loss: 0.2407 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 50 | loss: 0.2367 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 60 | loss: 0.2298 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 70 | loss: 0.2154 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 80 | loss: 0.2036 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 90 | loss: 0.1961 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 100 | loss: 0.1880 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 110 | loss: 0.1755 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 120 | loss: 0.1816 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.06s
+epoch: 130 | loss: 0.1626 | train_acc: 0.9334 | val_acc: 0.9213 | test_acc: 0.9349 | time: 0.07s
+epoch: 140 | loss: 0.1577 | train_acc: 0.9338 | val_acc: 0.9180 | test_acc: 0.9283 | time: 0.07s
+epoch: 150 | loss: 0.2113 | train_acc: 0.9330 | val_acc: 0.9213 | test_acc: 0.9316 | time: 0.06s
+epoch: 160 | loss: 0.1623 | train_acc: 0.9342 | val_acc: 0.9180 | test_acc: 0.9349 | time: 0.07s
+epoch: 170 | loss: 0.1471 | train_acc: 0.9365 | val_acc: 0.9148 | test_acc: 0.9283 | time: 0.07s
+epoch: 180 | loss: 0.1842 | train_acc: 0.9499 | val_acc: 0.8689 | test_acc: 0.8893 | time: 0.06s
+epoch: 190 | loss: 0.1538 | train_acc: 0.9381 | val_acc: 0.9180 | test_acc: 0.9251 | time: 0.06s
+epoch: 200 | loss: 0.1507 | train_acc: 0.9488 | val_acc: 0.8984 | test_acc: 0.9186 | time: 0.06s
+epoch: 210 | loss: 0.1304 | train_acc: 0.9484 | val_acc: 0.9148 | test_acc: 0.9283 | time: 0.05s
+epoch: 220 | loss: 0.1248 | train_acc: 0.9574 | val_acc: 0.9016 | test_acc: 0.9121 | time: 0.05s
+epoch: 230 | loss: 0.1252 | train_acc: 0.9468 | val_acc: 0.9082 | test_acc: 0.9186 | time: 0.05s
+epoch: 240 | loss: 0.1087 | train_acc: 0.9693 | val_acc: 0.8918 | test_acc: 0.9023 | time: 0.06s
+epoch: 250 | loss: 0.0939 | train_acc: 0.9704 | val_acc: 0.8984 | test_acc: 0.9023 | time: 0.05s
+epoch: 260 | loss: 0.0899 | train_acc: 0.9732 | val_acc: 0.8918 | test_acc: 0.8990 | time: 0.05s
+epoch: 270 | loss: 0.0863 | train_acc: 0.9720 | val_acc: 0.8951 | test_acc: 0.9055 | time: 0.05s
+epoch: 280 | loss: 0.0798 | train_acc: 0.9748 | val_acc: 0.8984 | test_acc: 0.9055 | time: 0.05s
+epoch: 290 | loss: 0.0973 | train_acc: 0.9622 | val_acc: 0.8918 | test_acc: 0.9121 | time: 0.06s
+Final evaluation -> train_acc: 0.9507, val_acc: 0.9115, test_acc: 0.9251

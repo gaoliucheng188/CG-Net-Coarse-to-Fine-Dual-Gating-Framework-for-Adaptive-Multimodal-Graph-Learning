@@ -1,0 +1,10 @@
+Dataset,Variant,Baseline_Variant,Baseline_F+,Gated_F+,F+_Improvement,Baseline_F-,Gated_F-,F-_Improvement
+mutag,A0,Baseline_B3,1.0,1.0,0.0,1.0,0.0,-1.0
+mutag,A1,Baseline_B3,1.0,1.0,0.0,1.0,0.0,-1.0
+mutag,A2,Baseline_B3,1.0,1.0,0.0,1.0,1.0,0.0
+mutag,A3,Baseline_B3,1.0,0.0,-1.0,1.0,1.0,0.0
+mutag,B0,Baseline_B3,1.0,1.0,0.0,1.0,0.0,-1.0
+mutag,B1,Baseline_B3,1.0,1.0,0.0,1.0,0.0,-1.0
+mutag,B2,Baseline_B3,1.0,1.0,0.0,1.0,0.0,-1.0
+mutag,B3,Baseline_B3,1.0,1.0,0.0,1.0,0.0,-1.0
+mutag,B4,Baseline_B3,1.0,1.0,0.0,1.0,0.0,-1.0

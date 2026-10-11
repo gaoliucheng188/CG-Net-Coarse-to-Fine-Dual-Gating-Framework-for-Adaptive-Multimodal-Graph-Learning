@@ -1,0 +1,43 @@
+﻿seed 42 run A:
+
+Pre-computing baseline predictions...
+鈿狅笍  Note: This run includes 'Soft Fusion Only' variant, which forces Explainer on ALL samples. It may take longer.
+1. Baseline (Always Full)            : 0.6494
+4. Variant B (Soft Fusion Only)      : 0.6494
+OURS (Dual Gating Framework)         : 0.6494
+   -> Hard Bypassed Text (O(1))      : 189 / 502 samples
+   -> Avg Soft Text Attention (Rest) : 0.936781
+B-claim check (need Soft/CG-Net > Full on HARD to support Soft quality):
+  Soft  on HARD: 0.4952  (delta vs Full: +0.0000)
+  => Soft 鈮� Full on HARD: Soft does not hurt; still no Acc boost for B.
+TIMING (this process; Soft runs on ALL nodes for Variant B)
+Loop wall time (Soft+all)  : 110.68 s  (0.2205 s/node)
+Soft explain total         : 110.55 s  (0.2202 s/node)
+Approx CG-Net Soft calls   : 313 hard nodes only
+Est. Soft time if hard-only : 68.93 s  (saves ~41.62 s vs Soft-on-all)
+Note: Always Full has 0 Soft calls; its cost is precompute + one fused forward.
+      Use bypass ratio + Est. Soft time for claim A efficiency narrative.
+
+
+seed 42 run B (repeat):
+
+Pre-computing baseline predictions...
+鈿狅笍  Note: This run includes 'Soft Fusion Only' variant, which forces Explainer on ALL samples. It may take longer.
+1. Baseline (Always Full)            : 0.6494
+4. Variant B (Soft Fusion Only)      : 0.6494
+OURS (Dual Gating Framework)         : 0.6494
+   -> Hard Bypassed Text (O(1))      : 189 / 502 samples
+   -> Avg Soft Text Attention (Rest) : 0.936781
+B-claim check (need Soft/CG-Net > Full on HARD to support Soft quality):
+  Soft  on HARD: 0.4952  (delta vs Full: +0.0000)
+  => Soft 鈮� Full on HARD: Soft does not hurt; still no Acc boost for B.
+TIMING (this process; Soft runs on ALL nodes for Variant B)
+Loop wall time (Soft+all)  : 105.60 s  (0.2104 s/node)
+Soft explain total         : 105.48 s  (0.2101 s/node)
+Approx CG-Net Soft calls   : 313 hard nodes only
+Est. Soft time if hard-only : 65.77 s  (saves ~39.71 s vs Soft-on-all)
+Note: Always Full has 0 Soft calls; its cost is precompute + one fused forward.
+      Use bypass ratio + Est. Soft time for claim A efficiency narrative.
+
+
+DONE

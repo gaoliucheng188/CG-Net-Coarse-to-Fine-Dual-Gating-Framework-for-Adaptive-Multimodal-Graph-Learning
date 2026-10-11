@@ -1,0 +1,84 @@
+{
+  "method": "modality-safe",
+  "tau": 0.7,
+  "rows": [
+    {
+      "dataset": "mutag",
+      "seed": 789,
+      "exit": 0,
+      "baseline_full": 0.6494,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.6494,
+      "soft_only": 0.7371,
+      "ours": 0.7371,
+      "bypass_count": 189,
+      "bypass_total": 502,
+      "attn": 0.001911
+    },
+    {
+      "dataset": "mutag",
+      "seed": 1024,
+      "exit": 0,
+      "baseline_full": 0.6494,
+      "baseline_notext": 0.7371,
+      "hard_only": 0.6494,
+      "soft_only": 0.7371,
+      "ours": 0.7371,
+      "bypass_count": 189,
+      "bypass_total": 502,
+      "attn": 0.001899
+    },
+    {
+      "dataset": "nlm_chem",
+      "seed": 42,
+      "exit": 0,
+      "baseline_full": 0.9667,
+      "baseline_notext": 1.0,
+      "hard_only": 0.9667,
+      "soft_only": 1.0,
+      "ours": 1.0,
+      "bypass_count": 27,
+      "bypass_total": 30,
+      "attn": 0.003283
+    },
+    {
+      "dataset": "nlm_chem",
+      "seed": 123,
+      "exit": 0,
+      "baseline_full": 0.9667,
+      "baseline_notext": 1.0,
+      "hard_only": 0.9667,
+      "soft_only": 1.0,
+      "ours": 1.0,
+      "bypass_count": 27,
+      "bypass_total": 30,
+      "attn": 0.002894
+    },
+    {
+      "dataset": "pqaref",
+      "seed": 42,
+      "exit": 0,
+      "baseline_full": 0.9349,
+      "baseline_notext": 0.9349,
+      "hard_only": 0.9349,
+      "soft_only": 0.9349,
+      "ours": 0.9349,
+      "bypass_count": 236,
+      "bypass_total": 307,
+      "attn": 0.001263
+    },
+    {
+      "dataset": "pqaref",
+      "seed": 123,
+      "exit": 0,
+      "baseline_full": 0.9349,
+      "baseline_notext": 0.9349,
+      "hard_only": 0.9349,
+      "soft_only": 0.9349,
+      "ours": 0.9349,
+      "bypass_count": 236,
+      "bypass_total": 307,
+      "attn": 0.001384
+    }
+  ]
+}

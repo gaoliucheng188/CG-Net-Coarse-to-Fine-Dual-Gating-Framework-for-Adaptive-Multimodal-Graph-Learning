@@ -1,0 +1,516 @@
+\documentclass[preprint,12pt,authoryear]{elsarticle}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{siunitx}
+\usepackage{booktabs,multirow,makecell}
+\usepackage[hyphens]{url}
+\usepackage{subcaption}
+\urlstyle{rm}
+\def\UrlFont{\rm}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\journal{Expert Systems with Applications}
+
+\title{CG-Net: Coarse-to-Fine Dual Gating Framework for Adaptive Multimodal Graph Learning}
+
+% ====== 双盲匿名投稿：以下作者/单位/邮箱已注释；录用后取消注释即可恢复 ======
+% \author[aff2]{Feifei Wei}
+% \ead{wffphi@ahnu.edu.cn}
+%
+% \author[aff1,aff2]{Liucheng Gao}
+% \ead{2521022972@ahnu.edu.cn}
+%
+% \author[aff3]{Wenli Huang}
+% \ead{huangwenwenlili@126.com}
+%
+% \author[aff2]{Fulong Chen}
+% \ead{long005@ahnu.edu.cn}
+%
+% \author[aff4]{Chunjing Liu\corref{cor1}}
+% \ead{cjliu8@iflytek.com}
+%
+% \author[aff5]{Zhongyun Bao\corref{cor1}}
+% \ead{zhongyunbao@ahpu.edu.cn}
+%
+% \cortext[cor1]{Corresponding author}
+%
+% \affiliation[aff1]{organization={School of Computer and Information, Anhui Normal University},
+%             city={WuHu},
+%             postcode={241000},
+%             country={China}}
+%
+% \affiliation[aff2]{organization={School of Intelligent Information and Advanced Manufacturing, Anhui Normal University},
+%             city={WuHu},
+%             postcode={241000},
+%             country={China}}
+%
+% \affiliation[aff3]{organization={School of Electronic and Information Engineering, Ningbo University of Technology},
+%             city={Ningbo},
+%             postcode={315000},
+%             country={China}}
+%
+% \affiliation[aff4]{organization={School of Computer and Software Engineering, Anhui Institute of Information Technology},
+%             city={WuHu},
+%             postcode={241000},
+%             country={China}}
+%
+% \affiliation[aff5]{organization={School of Computer and Information, Anhui Polytechnic University},
+%             city={WuHu},
+%             postcode={241000},
+%             country={China}}
+
+\author{Anonymous}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\begin{abstract}
+Text-attributed graph (TAG) learning faces a fundamental accuracy--efficiency tradeoff because textual semantics contribute unevenly across individual graph instances. Existing approaches either discard textual semantics entirely or apply universal multimodal fusion to every input, incurring redundant computation on topology-sufficient graphs and exposing ambiguous samples to cross-modal interference from noisy tokens. To address these issues, we propose CG-Net, a confidence-aware coarse-to-fine dual-gating framework that schedules multimodal computation according to the model prediction uncertainty. At the coarse graph level, a Hard Router skips the entire text-encoding pipeline for high-confidence samples, avoiding redundant quadratic-complexity text computation. At the fine token level, a Soft Masker filters untrustworthy textual tokens before multimodal fusion on low-confidence instances, so that unreliable text is suppressed instead of corrupting the fused representation. Together, graph routing and token denoising allow CG-Net to balance predictive accuracy and inference efficiency. In real-world TAG systems, the textual modality is frequently degraded by OCR errors, user-generated typos and abbreviations, privacy redaction, or adversarial injection, so a fusion component must remain reliable when text fails, rather than assuming that text is always trustworthy. CG-Net is designed as such a modality-safe component: its Soft Masker detects unreliable text on the ambiguous minority and falls back to the reliable topology answer, while its Hard Router avoids redundant text encoding for topology-sufficient samples. On MUTAG, NLM-Chem, and PQARef, CG-Net never underperforms its own topology-only branch, recovering accuracy lost by text-polluted static fusion (0.737 vs.\ 0.649 on MUTAG). It further reduces the number of text encodings performed by up to 90.0\% under strictly unified experimental protocols. Beyond these results, our threshold analysis shows a consistently graph-dominant interaction pattern across benchmarks---$\tau$ trades text computation for no accuracy cost---and delivers actionable guidelines for building reliable and efficient multimodal TAG systems.
+\end{abstract}
+
+\begin{highlights}
+\item We propose CG-Net, coarse-to-fine dual gating for adaptive multimodal computation.
+\item Its Hard Router bypasses text encoding on topology-sufficient graph samples.
+\item A Soft Masker denoises text tokens and falls back to the topology answer.
+\item CG-Net never underperforms its topology-only branch while cutting text computation.
+\item Threshold analysis reveals a graph-dominant pattern with no accuracy cost.
+\end{highlights}
+
+\begin{keyword}
+Text-attributed graph \sep Multimodal graph neural networks \sep Adaptive gating \sep Graph-text fusion \sep Model efficiency
+\end{keyword}
+
+\end{frontmatter}
+
+
+
+\section{Introduction}
+Text-attributed graph (TAG) learning integrates graph topology with descriptive node attributes, forming a naturally multimodal representation that has been widely adopted in molecular property prediction, chemical analysis, and academic network classification~\citep{xu2022surveyTAG}. By jointly exploiting structural dependencies and semantic descriptions, multimodal graph neural networks (GNNs) have recently achieved strong results on TAG learning tasks~\citep{li2025frameerc,fu2025sdr}.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{motivation.png}
+    \caption{The inherent accuracy--efficiency tradeoff dominating existing multimodal TAG learning. Left: topology-only inference achieves low latency but leaves ambiguous samples unsupported. Middle: static universal graph-text fusion applies identical pipelines to all instances, incurring heavy $\mathcal{O}(L^2)$ overhead and remaining vulnerable to unfiltered textual noise. Right: our CG-Net adaptively selects the inference pipeline per sample via coarse-to-fine dual gating, bypassing text where topology suffices and falling back to the reliable topology answer when text is untrustworthy.}
+    \label{fig:motivation}
+\end{figure}
+
+Despite these advances, existing TAG learning frameworks still face a fundamental accuracy--efficiency tradeoff~\citep{wang2025gaga,hu2025promptgnnsim,zhang2026openrtag}. A representative family of approaches relies exclusively on graph topology for prediction~\citep{kipf2017gcn}. Although topology-only models are computationally efficient, they inevitably fail when structural signals are insufficient to distinguish semantically similar but structurally ambiguous instances, resulting in degraded predictive performance and limited generalization.
+
+To overcome this limitation, recent multimodal TAG approaches introduce graph-text fusion mechanisms that jointly encode topology and textual attributes for every sample~\citep{cai2024multimodal}. Despite their effectiveness, these universal fusion paradigms adopt static computation and ignore the heterogeneous information demands across graph instances: for topology-dominant samples, redundant text encoding incurs heavy overhead with no extra discriminative gain; for ambiguous structural samples, noisy textual tokens cause modality interference and degrade graph-text representations. As shown in Figure \ref{fig:motivation}, static universal fusion suffers from both drawbacks.
+
+These observations reveal two fundamental challenges in multimodal TAG learning.
+\textbf{Challenge 1 (Adaptive Efficiency):} Existing approaches lack instance-level computation-allocation mechanisms and cannot dynamically bypass expensive text processing when structural information is already sufficient.
+\textbf{Challenge 2 (Reliable Fusion):} Existing multimodal fusion frameworks indiscriminately integrate textual attributes, making them vulnerable to irrelevant semantic tokens that compromise representation quality.
+
+These two challenges are not merely academic: in deployed TAG systems the textual modality is frequently degraded rather than cleanly labeled. Node descriptions can carry OCR errors, user-generated typos and abbreviations, be redacted for privacy, or be adversarially injected; a fusion component that unconditionally trusts text will propagate such noise into its predictions, and is most dangerous precisely when the topology signal is already ambiguous. From a systems perspective, the desirable behavior is graceful degradation: when text is untrustworthy or uninformative, the model should retreat to the reliable topology branch instead of being dragged down by it. This motivates treating modality safety---remaining robust under unreliable input modalities---as a first-class design goal, not an incidental property of an accuracy-seeking fusion.
+
+To address these challenges, we propose a simple yet effective insight: multimodal computation should be adaptively allocated according to the reliability of the available modalities. Concretely, topology-dominant instances should efficiently rely on graph-only inference, whereas structurally uncertain instances should receive additional textual reasoning with selective semantic refinement. Following this principle, we design \textbf{CG-Net (Coarse-to-Fine Dual-Gating Framework)}, a confidence-guided adaptive routing framework that dynamically determines whether and how multimodal information should be utilized.
+
+CG-Net consists of two complementary stages:
+
+\noindent\textbf{Stage 1: Coarse-grained Hard Router.}
+CG-Net first performs topology-only inference and estimates instance uncertainty through prediction confidence margins. Samples with reliable structural predictions are directly classified from graph representations, skipping text encoding and multimodal fusion entirely. This coarse routing mechanism reduces redundant computation while preserving accuracy on topology-sufficient instances.
+
+\noindent\textbf{Stage 2: Fine-grained Soft Masker.}
+Only uncertain instances are further processed by multimodal fusion. Instead of blindly incorporating all textual attributes, CG-Net introduces an explainer-inspired Soft Masker to identify and suppress irrelevant textual tokens. The resulting refined semantic representation is then adaptively integrated with the graph features, enabling robust reasoning for structurally ambiguous samples.
+
+Through this coarse-to-fine adaptive routing strategy, CG-Net couples the computational efficiency of topology-only inference with a modality-safe fusion stage, mitigating the accuracy--efficiency dilemma in TAG learning.
+
+\noindent Our main contributions are summarized as follows:
+\begin{itemize}
+    \item We propose \textbf{CG-Net}, a confidence-guided coarse-to-fine dual-gating framework that schedules multimodal computation per instance: it bypasses text encoding entirely for topology-dominant graphs and, for uncertain instances, activates modality-safe token-refined fusion that retreats to the reliable topology answer when text proves untrustworthy.
+    \item We introduce an \textbf{explainer-inspired Soft Masker} that performs per-sample test-time token-level denoising before graph-text fusion, suppressing untrustworthy text so it cannot corrupt the fused representation.
+    \item Extensive experiments on three TAG benchmarks demonstrate that CG-Net never underperforms its own topology-only branch while reducing text computation by \textbf{$37.6\%$--$90.0\%$}; the threshold analysis further shows a consistently graph-dominant interaction pattern in which $\tau$ trades text computation for no accuracy cost, with the bypass fractions varying across benchmarks.
+\end{itemize}
+
+\section{Related Work}
+\subsection{Multimodal Graph Representation Learning}
+Text-attributed graph (TAG) learning is commonly addressed by a fixed multimodal pipeline that applies the same graph-text fusion to every node~\citep{cai2024multimodal,xu2022surveyTAG}, and multimodal GNNs have been deployed in application domains including process factor forecasting in industrial IoT systems~\citep{sun2026semantically}, multimodal intent recognition~\citep{wang2025mgc}, and multi-channel or multi-relation graph learning for node classification~\citep{zhu2023cnimgcn,liu2024mregdn}. Recent methods integrate large language models (LLMs) to enrich semantic modeling, e.g., through multi-evidence reasoning for graph anomaly detection~\citep{cheng2026graph}, yet they retain exhaustive full-modal encoding and typically omit token-level denoising~\citep{yun2023multimodal}. Because these fixed paradigms apply a single strategy uniformly to all instances, they cannot selectively deactivate the text branch on topology-sufficient graphs. CG-Net instead performs graph-level adaptive routing that skips redundant text encoding per instance, enabling instance-efficient multimodal learning.
+
+\subsection{Early-Exit and Adaptive Depth in GNNs}
+Early-exit GNNs shorten the effective computation depth for easy samples to reduce redundant graph processing~\citep{zhang2022earlyexitgnn_iclr}. These methods, however, only optimize a single unimodal pipeline and cannot switch between topology-only inference and cross-modal fusion. Recent confidence-based mechanisms prune instances, skip layers, or tune fusion weights to lower text-side cost, yet they rely on learned routers or trainable thresholds~\citep{han2026marginprune,li2026crossmodalEE,chen2026differentiabletau}. In contrast, our Hard Router deactivates the entire text branch before any encoding, using a fixed confidence margin on the graph-only branch and introducing no additional learnable parameters.
+
+\subsection{GNN Explanation Methods}
+GNN explanation methods identify critical predictive features through mask optimization, which motivates our token-denoising design~\citep{ying2019gnnexplainer}. Classical explainers, however, are offline post-hoc tools and cannot be embedded into the online fusion pipeline as inline denoisers. Recent LLM-graph denoising methods learn token masks that are applied to all samples, incurring non-negligible overhead~\citep{huang2026dynmaskllmgraph,wang2026fidelitydenoise}. Our Soft Masker instead performs per-sample test-time mask optimization and confines this cost to the small minority of low-confidence instances routed into fusion, rather than applying denoising globally.
+
+\subsection{Dynamic Gating Mechanisms}
+Dynamic gating is widely adopted in multimodal learning to re-weight cross-modal fusion. Representative graph gating methods tune fusion ratios only after all modalities have been fully encoded and therefore cannot reduce text-side computation~\citep{wei2023lightgt_icml}; recent approaches either fix the gate globally~\citep{yang2026globalgate} or introduce learnable routers that add training overhead~\citep{deng2026dyninfopath,lin2026freqexpert,zhang2026fedrgl}. Unlike these designs, our Hard Router applies a fixed confidence margin on the graph-only branch---without introducing any learnable parameters---and deactivates text encoding before it begins, enabling lightweight per-sample multimodal scheduling.
+
+\paragraph{Selective Language Processing}
+Two recent lines of work share our efficiency motivation and deserve direct comparison. GLANCE~\citep{loveland2026glance} learns a lightweight router that decides per node whether to invoke expensive LLM-based refinement, realizing conditional GNN--LLM invocation at inference. GraphBridge~\citep{wang2024graphbridge} performs graph-aware token reduction to lower the cost of processing text-attributed graphs. CG-Net is complementary to both along the coarse-to-fine axis: our Hard Router deactivates the \emph{entire} text branch before any text encoding, a coarser yet parameter-free decision than GLANCE's learned router; at the fine end, our Soft Masker performs test-time token-level denoising only on the small subset of routed-in hard samples, rather than applying token reduction globally to every sample. We further contrast CG-Net with a \emph{routing-only selective-processing control} in Section~\ref{sec:selective_comp}, which deactivates text encoding via a confidence threshold but skips the refinement stage, mirroring conditional language invocation.
+
+\paragraph{Qualitative Comparison with Prior Work}
+We summarize the core distinctions between CG-Net and existing methods:
+(1) static TAG fusion lacks sample-level adaptive routing;
+(2) GNN early-exit designs are restricted to unimodal layer adjustment;
+(3) existing multimodal gates cannot fully bypass text-encoding pipelines;
+(4) offline GNN explainers cannot serve as inline denoising modules for multimodal fusion.
+
+\section{Preliminaries}
+\subsection{Problem Definition}
+Given a text-attributed graph $\mathcal{G} = (\mathcal{V}, \mathcal{E}, X_G, X_T)$, where $\mathcal{V}$ and $\mathcal{E}$ denote the node and edge sets, $X_G$ denotes the topological feature matrix, and $X_T$ denotes the textual attributes of the nodes. Traditional multimodal GNNs adopt either graph-only prediction or full graph-text fusion for all samples. Our goal is sample-adaptive modality selection that balances prediction accuracy and computational overhead.
+
+Let $P_G(y|v)$ denote the prediction probability distribution produced by the graph-only branch and $P_{GT}(y|v)$ that produced by the standard static full-text fusion pipeline widely used in the TAG literature. We design a gating function $g(v) \in \{0, 1\}$ that decides which branch is used for each sample $v$.
+
+\noindent\textbf{Computational Complexity}: CG-Net achieves adaptive complexity: $\mathcal{O}(|V|+|E|)$ for topology-sufficient samples (via Hard Router bypass) and $\mathcal{O}(L^2)$ for topology-insufficient samples (via Soft Masker fusion), where $|V|$ is the number of graph nodes, $|E|$ the number of graph edges, and $L$ the number of text tokens; the $L^2$ factor is the cost of self-attention in text encoding.
+
+\section{Methodology}
+\noindent\textbf{CG-Net: Confidence-based Coarse-to-Fine Dual Gating Framework}: To mitigate the accuracy--efficiency dilemma in static TAG learning, we design CG-Net, which achieves instance-wise adaptive reasoning through two complementary modules. The macroscopic Hard Router screens sample difficulty at the graph level, skipping redundant text computation for topology-sufficient easy instances; the microscopic Soft Masker performs token-level textual denoising followed by refined graph-text fusion for ambiguous hard instances. CG-Net thereby combines efficient graph-only inference with selective denoised multimodal fusion in a single adaptive pipeline. Figure \ref{fig:framework} illustrates the overall workflow.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.95\textwidth]{diagrame.png}
+\caption{Overview of CG-Net. A graph-only encoder first computes the confidence margin $\mathcal{M}(v)$. The Hard Router then selects the path for each sample: easy samples ($\mathcal{M}(v)>\tau$) directly output graph-only predictions and skip text encoding, while hard samples activate the Soft Masker for test-time token denoising and soft fusion of $P_G$ and $P_{GT}$ weighted by text reliability $s_T$.}
+\label{fig:framework}
+\end{figure*}
+
+\subsubsection{Stage 1: Macroscopic Hard Router}
+The graph-only branch outputs a classification probability distribution, and we adopt the probability margin as a measure of topology confidence:
+\begin{equation}
+    \mathcal{M}(v) = p_{\text{top-1}}(v) - p_{\text{top-2}}(v)
+    \label{eq:margin}
+\end{equation}
+where $p_{\text{top-1}}(v)$ and $p_{\text{top-2}}(v)$ denote the largest and second-largest entries of the graph-only softmax output. A larger margin indicates more discriminative topology. The gating decision is controlled by the hyperparameter $\tau$:
+\begin{equation}
+g(v) =
+\begin{cases}
+0, & \mathcal{M}(v) > \tau \;\; \text{(skip text)}, \\
+1, & \mathcal{M}(v) \le \tau \;\; \text{(activate fusion)}.
+\end{cases}
+\label{eq:gate_rule}
+\end{equation}
+In practice we set $\tau=0.7$ as the default, selected via a \textbf{validation-set sweep} over $\tau\in\{0.1,0.3,0.5,0.7,0.9\}$: we choose the largest $\tau$ that keeps validation accuracy from dropping while maximizing the text-bypass ratio, so the test set plays no role in threshold selection. $\tau$ can be adjusted to meet task-specific efficiency requirements.
+Once $g(v)=0$, text encoding and self-attention are discarded, reducing inference cost to the graph-only computation $\mathcal{O}(|V|+|E|)$.
+
+\subsubsection{Stage 2: Microscopic Soft Masker}
+For hard samples with $g(v)=1$, we replace the original full-text fusion with a lightweight token-masking module inspired by classic GNN explainer designs~\citep{ying2019gnnexplainer}. Importantly, the Soft Masker is a \textbf{test-time optimization} procedure: for each hard sample, we optimize masks online during inference rather than learning a single global denoiser offline. This module performs per-sample optimization (20 epochs) to learn two complementary masks: (1) a graph edge mask $M_G \in \mathbb{R}^{|V| \times |V|}$ that selects the most informative subgraph structure, and (2) a text token mask $M_T \in \mathbb{R}^{L}$ that filters noisy tokens. For each hard sample $v$, we initialize the masks at $\sigma(0)=0.5$ and optimize the loss in Eq.~\eqref{eq:explainer_loss} using Adam with a learning rate of 0.5; upon convergence, $M_G$ identifies important graph edges while $M_T$ suppresses noisy tokens. Throughout, each mask is written as $M=\sigma(m)$, the sigmoid output of a free logit variable $m$, so that all mask values are normalized to $[0,1]$.
+\begin{equation}
+\mathcal{L} = \mathcal{L}_{\text{pred}} + \lambda_{\text{size}}\mathcal{L}_{\text{size}} + \lambda_{\text{ent}}\mathcal{L}_{\text{ent}},
+\label{eq:explainer_loss}
+\end{equation}
+where:
+\begin{itemize}
+    \item $\mathcal{L}_{\text{pred}} = -\log \hat{p}_{\hat y}$ encourages the model to remain confident in its \emph{own} predicted class $\hat y=\arg\max_y P_{GT}(y|v)$ when evaluated on the masked graph and text. We stress that masks are optimized \emph{without access to ground-truth labels} during inference; optimizing against the true label would leak test labels into the fusion weight $s_T$ and is never performed in any of our experiments.
+    \item $\mathcal{L}_{\text{size}} = \sum |M|$ promotes mask sparsity,
+    \item $\mathcal{L}_{\text{ent}} = -\sum (M \log M + (1-M)\log(1-M))$ prevents trivial solutions via entropy regularization.
+\end{itemize}
+\textbf{Simplified design rationale}: We retain three standard mask-optimization loss terms adopted in mainstream GNN explanation literature to avoid over-engineering. Adding complex regularization terms risks introducing unvalidated hyperparameters that generalize poorly across datasets.
+
+\noindent\textbf{Cost discussion}: Because the Soft Masker runs only on hard samples, easy samples incur the graph-only cost $\mathcal{O}(|V|+|E|)$ and completely avoid both text encoding and mask optimization, whereas hard samples pay an additional per-sample optimization cost. CG-Net therefore improves inference efficiency whenever a substantial fraction of samples is easy enough to bypass text.
+
+After per-sample optimization,
+\begin{equation}
+    s_T = \frac{1}{|M_T|} \sum_{i} \sigma(M_T^{(i)})
+    \label{eq:text_score}
+\end{equation}
+The final soft-fused prediction interpolates between the graph-only and full-multimodal predictions according to text reliability:
+\begin{equation}
+    \hat{P}(y|v) = (1 - s_T) \cdot P_G(y|v) + s_T \cdot P_{GT}(y|v)
+    \label{eq:soft_fusion}
+\end{equation}
+where $s_T \in [0,1]$ weights the two branches: $s_T \to 0$ corresponds to graph-dominant samples, and $s_T \to 1$ to text-reliable samples.
+We further note that the graph-edge mask $M_G$ is used to extract the informative subgraph for interpretability and Fidelity evaluation; it does not directly alter the soft-fused prediction in Eq.~\eqref{eq:soft_fusion}, which is governed solely by $s_T$ derived from the text-token mask $M_T$.
+
+\subsection{Architectural Variants}
+To analyze the independent contribution of each proposed component, we define three ablation variants:
+
+\noindent\textbf{Variant A (Hard Router Only)}: Uses the Hard Router for modality selection but falls back to raw static full fusion without token denoising for low-confidence samples:
+\begin{equation}
+\hat{y} =
+\begin{cases}
+\arg\max P_G, & \mathcal{M}(v) > \tau, \\
+\arg\max P_{GT}, & \mathcal{M}(v) \le \tau.
+\end{cases}
+\label{eq:variant_a}
+\end{equation}
+
+\noindent\textbf{Variant B (Soft Masker Only)}: Forces the token mask optimization module to run on all samples without confidence-based sample filtering:
+\begin{equation}
+    \hat{y} = \arg\max \left[ (1 - s_T) \cdot P_G + s_T \cdot P_{GT} \right]
+    \label{eq:variant_b}
+\end{equation}
+
+\noindent\textbf{CG-Net (Full Dual Gating)}: Integrates the Hard Router and the Soft Masker into a unified coarse-to-fine pipeline:
+\begin{equation}
+\label{eq:ours}
+\hat{y} =
+\begin{cases}
+\arg\max P_G, & \mathcal{M}(v) > \tau \\[4pt]
+\arg\max\big[\,(1-s_T)P_G + s_T P_{GT}\,\big], & \mathcal{M}(v) \le \tau
+\end{cases}
+\end{equation}
+\noindent where the first branch skips all text computation for easy samples, and the second branch executes the denoised multimodal fusion for ambiguous hard instances.
+
+\subsection{Three Multimodal Interaction Paradigms}
+\label{sec:paradigms}
+Based on threshold-sweeping ablation results from models trained from scratch, we formalize three graph-text interaction regimes for analyzing TAG datasets:
+\begin{itemize}
+    \item \textbf{Synergistic Paradigm}: Graph and text supply complementary information; accuracy forms an inverted-U curve over $\tau$, peaking at medium thresholds that retain useful text while filtering noise. This pattern was initially observed on the original MUTAG template but is partly driven by label-correlated keywords in the generated text; after clean-text re-evaluation (see \S\ref{sec:cleantext}), MUTAG behaves as a Graph-Dominant dataset. We nonetheless formalize this paradigm because it is the regime that CG-Net's design targets, and we expect it to emerge on TAG benchmarks with richer, label-independent textual features.
+    \item \textbf{Graph-Dominant Paradigm}: Topological features hold full discriminative capacity; text brings no accuracy gain, and the threshold mainly controls the text-skip ratio for efficiency. This pattern is observed on NLM-Chem and PQARef and is also confirmed on clean-text MUTAG.
+    \item \textbf{Interfering Paradigm (theoretical)}: Raw text may be so noisy that additional fusion degrades accuracy. We list this pattern for completeness; it is \textbf{not observed} as a dominant behavior on the three benchmarks evaluated in this paper, and the Soft Masker is expected to mitigate such interference when it occurs.
+\end{itemize}
+
+\section{Experiments}
+We conduct comprehensive controlled experiments to systematically validate the effectiveness, efficiency, and interpretability of the proposed CG-Net framework. All experiments are trained from scratch with unified backbones, dataset splits, and hyperparameter settings. Unless otherwise specified, the prediction task is \textbf{node-level classification on text-attributed graphs}: each node has a structural neighborhood and a textual description, and the model predicts the node label.
+
+\subsection{Experimental Setup}
+This section introduces unified experimental configurations, including benchmark datasets, model architectures, evaluation metrics, comparison variants, and hyperparameter settings.
+
+\noindent\textbf{Datasets}. We adopt three public text-attributed graph benchmarks. After preprocessing, each dataset is organized as a node-classification graph with fixed train/val/test node splits:
+\begin{itemize}
+    \item \textbf{MUTAG}~\citep{debnath1998mutag}: a molecular TAG constructed from the classic MUTAG collection. Molecules are connected into a disjoint-union graph for node-level evaluation. The processed graph contains 3371 nodes in total, and we report accuracy on the fixed test split of 502 nodes. Node texts are generated by a template-based TAG protocol following \citep{yun2023multimodal}; as discussed later, these templates contain label-correlated phrases.
+    \item \textbf{NLM-Chem}~\citep{leaman2021nlmchem}: a chemical entity graph extracted from PubMed abstracts. The processed graph used in our experiments contains 150 nodes with multi-class chemical labels and associated textual descriptions.
+    \item \textbf{PQARef}~\citep{han2020pqaref}: an academic text-attributed graph for node classification with abstract-level text attributes. The processed graph contains 3149 nodes, and we report accuracy on the fixed test split of 307 nodes.
+\end{itemize}
+
+\noindent\textbf{Model Architecture}. A 3-layer GCN \citep{kipf2017gcn} serves as the shared base encoder for all variants. Text embeddings are extracted with a pretrained BERT-based sentence transformer \citep{devlin2019bert} that is held \emph{frozen}: the sentence encoder weights are fixed and only a linear projection head is optimized, so no text-backbone parameters are updated during training. All graph, fusion, and prediction modules are trained from scratch on the task splits. Our dual-gating framework introduces two internal ablations, \textbf{Always Full} (Hard Router bypassed and Soft Masker disabled) and \textbf{Drop Text} (text branch disabled), to isolate the contribution of each component.
+
+\noindent\textbf{Evaluation Metrics.}
+We adopt three categories of metrics to comprehensively evaluate predictive performance, inference efficiency, and explanation quality.
+First, Classification Accuracy (ACC) evaluates overall prediction performance.
+Second, the Text Bypass Ratio quantifies inference efficiency, defined as the percentage of samples that completely skip textual computation via the Hard Router.
+Third, standard perturbation-based Fidelity metrics are adopted to evaluate explainability quality following mainstream GNN explanation protocols.
+
+\noindent\textbf{Comparison Variants}: We compare CG-Net with both internal ablation variants and representative external baselines under identical dataset splits, evaluation protocol and training settings. All baselines are implemented under a unified protocol within this paper: GIN and TextGCN are re-implemented from scratch, while GLEM is a simplified baseline following the EM co-training paradigm of Zhao et al.
+\begin{itemize}
+    \item \textbf{GIN}~\citep{xu2019gin}: standard topology-only graph isomorphism network, re-implemented in PyTorch.
+    \item \textbf{TextGCN}~\citep{yao2019textgcn}: text-driven heterogeneous graph convolutional network that builds doc-word graph with PMI-weighted word-word edges.
+    \item \textbf{GLEM}~\citep{zhao2023glem}: a simplified baseline following the EM co-training paradigm of Zhao et al.\ (NeurIPS 2023), which jointly trains a GNN and an LM with pseudo-label regularization.
+    \item \textbf{Always Full}: Internal ablation that bypasses the Hard Router and disables the Soft Masker, so every sample receives static full graph-text fusion (CG-Net with both gating mechanisms turned off). This isolates the contribution of instance-level adaptive routing and test-time token denoising.
+    \item \textbf{Drop Text}: Internal ablation that disables the text branch entirely, leaving only the graph-only GCN branch (CG-Net with text modality removed). This is a topology-only control for isolating the contribution of the text branch.
+    \item \textbf{Variant A}: Hard Router Only, as in Eq.~\eqref{eq:variant_a}.
+    \item \textbf{Variant B}: Soft Masker Only, as in Eq.~\eqref{eq:variant_b}.
+    \item \textbf{Ours}: Full coarse-to-fine dual gating, as in Eq.~\eqref{eq:ours}.
+\end{itemize}
+All graph, fusion, and prediction modules are trained from scratch under unified settings; the frozen text feature extractor is used solely for representation extraction (see Model Architecture), and no archived experimental results are reused.
+
+\noindent\textbf{Hyperparameters}: $\tau=0.7$ was fixed for ablation studies; we swept $\tau \in \{0.1,0.3,0.5,0.7,0.9\}$ for paradigm analysis. Mask optimization: 20 epochs, Adam with $\text{lr}=0.5$, $\lambda_{\text{size}}=0.005$, $\lambda_{\text{ent}}=1.0$, consistent with mainstream GNN explainer settings.
+
+\noindent\textbf{Experimental Design.} We conduct component ablation, threshold sweeping for multimodal pattern analysis, and fair comparisons against mainstream TAG baselines with unified data partitions and experimental protocols. All experiments are implemented with PyTorch 2.0.1 (CUDA 11.8) and Hugging Face Transformers 4.38.2, evaluated on a single consumer GPU (RTX 4060, 8GB VRAM) under Windows 11. Absolute latency figures (Table~\ref{tab:efficiency}) are specific to this hardware; relative workload shares (text-share, soft scope, bypass ratio) are architecture-level and hardware-portable.
+
+\begin{table}[!t]
+\centering
+\small
+\renewcommand{\arraystretch}{1.2}
+\caption{Internal ablation results at fixed $\tau=0.7$. We report accuracy and the text-bypass ratio for each variant: Variant A uses only the Hard Router, Variant B only the Soft Masker, and CG-Net is the full dual-gating framework.
+\textbf{Note}: On MUTAG the Soft Masker drives the text weight $s_T$ to $\sim$0 for the untrustworthy text, recovering the Drop-Text topology accuracy from a text-polluted static fusion; clean-text validation is given in Table~\ref{tab:sota}.}
+\label{tab:ablation}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{l S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] c}
+\toprule
+Dataset & {Always Full} & {Drop Text} & {Variant A} & {Variant B} & {CG-Net} & Hard Bypass \\
+\midrule
+MUTAG    & 0.6494 & 0.7371 & 0.6494 & 0.7371 & \textbf{0.7371} & 189/502 \\
+NLM-Chem & 0.9667 & \textbf{1.0000} & 0.9667 & \textbf{1.0000} & \textbf{1.0000} & 27/30  \\
+PQARef   & 0.9349 & 0.9349 & 0.9349 & 0.9349 & 0.9349 & 236/307 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[!t]
+\centering
+\small
+\caption{Threshold sweep results for $\tau\in[0.1,0.9]$. All three benchmarks are Graph-Dominant: accuracy is invariant across $\tau$ while the bypass ratio rises with $\tau$, so $\tau$ trades text computation for no accuracy cost.
+\textbf{Note}: MUTAG uses its template-generated node texts here, with clean-text controls in Table~\ref{tab:sota}; values are deterministic across the seeded runs reported in Table~\ref{tab:multiseed}.}
+\label{tab:tau_sweep}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{c|cc|cc|cc}
+\toprule
+\multirow{2}{*}[-0.3em]{$\tau$} & \multicolumn{2}{c|}{MUTAG} & \multicolumn{2}{c|}{NLM-Chem} & \multicolumn{2}{c}{PQARef} \\
+\cmidrule{2-7}
+ & Acc & Bypass & Acc & Bypass & Acc & Bypass \\
+\midrule
+0.1 & 0.7371 & 449/502 (89.4\%) & 1.0000 & 28/30 (93.3\%) & 0.9349 & 307/307 (100\%) \\
+0.3 & 0.7371 & 346/502 (68.9\%) & 1.0000 & 27/30 (90.0\%) & 0.9349 & 293/307 (95.4\%) \\
+0.5 & 0.7371 & 258/502 (51.4\%) & 1.0000 & 27/30 (90.0\%) & 0.9349 & 282/307 (91.9\%) \\
+0.7 & \textbf{0.7371} & 189/502 (37.6\%) & 1.0000 & 27/30 (90.0\%) & 0.9349 & 236/307 (76.9\%) \\
+0.9 & 0.7371 & 2/502 (0.4\%) & 1.0000 & 0/30 (0.0\%) & 0.9349 & 0/307 (0\%) \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Ablation Analysis}
+Table \ref{tab:ablation} evaluates the individual and combined effects of our two modules, with clean-text comparison results provided in Table \ref{tab:sota} and Section \ref{sec:cleantext}. On MUTAG, static full fusion (Always Full) is dragged down to 0.6494 by the label-correlated template text; the Hard Router alone (Variant A) cannot recover the loss, because hard samples still fuse the same noisy raw text. It is the Soft Masker that detects the unreliable text, drives $s_T$ to $\sim$0, and recovers the clean Drop-Text accuracy of 0.7371. Our full CG-Net matches this recovered accuracy while additionally skipping text computation for 37.6\% of test samples via Hard Router screening. On NLM-Chem, the Soft Masker likewise prevents the fusion from being pulled away from the graph-only answer by text that carries no additional discriminative signal: CG-Net reaches the Drop-Text accuracy of 1.0000 while Always Full stays at 0.9667, bypassing text for 90\% of samples.
+All variants produce identical predictions on PQARef, whose text carries no effective discriminative information: the framework is robust there and never hurts accuracy, simply skipping text for 76.9\% of samples. Together, these results state CG-Net's honest value proposition: it automatically retreats to the more reliable topology-only answer whenever text is untrustworthy or uninformative, converting, without an accuracy penalty, text computation that would otherwise be wasted or harmful.
+
+\subsection{Comparison with External TAG Baselines}
+To position CG-Net against existing TAG learning literature, we compare it with three representative external baselines spanning complementary paradigms: GIN (topology-only graph classification), TextGCN (text-driven heterogeneous graph), and a simplified GLEM baseline following the EM co-training paradigm of Zhao et al.~\citep{zhao2023glem}. All external baselines are re-implemented from scratch under identical dataset splits and evaluation protocol as CG-Net. Table~\ref{tab:sota} summarizes test accuracy across the three benchmarks.
+
+\begin{table}[!t]
+\centering
+\small
+\caption{Comparison with representative TAG baselines under identical dataset splits and evaluation protocol; all baselines are re-implemented from scratch. We report mean$\pm$std over five random seeds (42/123/456/789/1024) for the three baseline scripts (GIN, TextGCN, GLEM) and the single-seed clean-text results for the three train.py variants (Always Full, Drop Text, CG-Net), detailed in \S\ref{sec:cleantext}. NLM-Chem and PQARef have label-independent texts by design, so their 5-seed values provide the fairest comparison against text-driven baselines.}
+\label{tab:sota}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{l l c c c}
+\toprule
+Method & Type & MUTAG & NLM-Chem & PQARef \\
+\midrule
+GIN~\citep{xu2019gin} & Topology-only & 0.779$\pm$0.023 & 0.987$\pm$0.018 & 0.927$\pm$0.012 \\
+TextGCN~\citep{yao2019textgcn} & Text-driven & 0.680$\pm$0.034 & 0.960$\pm$0.026 & 0.932$\pm$0.004 \\
+GCN+BERT (Always Full) & Static fusion & 0.649 & 0.967 & 0.935 \\
+Drop Text (topology-only) & Topology-only & 0.737 & 1.000 & 0.935 \\
+GLEM~\citep{zhao2023glem} & EM co-training & 0.539$\pm$0.088 & 0.956$\pm$0.037 & 0.935$\pm$0.000 \\
+\midrule
+\textbf{CG-Net (Ours)} & \textbf{Adaptive gating} & \textbf{0.737} & \textbf{1.0000} & \textbf{0.9349} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Table~\ref{tab:sota} positions CG-Net against representative TAG baselines. On NLM-Chem, CG-Net attains 1.0000, the best of any method (GIN 0.987, TextGCN 0.960, Always Full 0.967, GLEM 0.956). On PQARef, CG-Net matches the strongest baselines at 0.9349, slightly above GIN (0.927) and TextGCN (0.932). On MUTAG the ordering follows the Graph-Dominant paradigm: topology-only GIN is strongest (0.779); CG-Net (0.737) equals its own topology-only Drop-Text branch, ranks second ahead of TextGCN (0.680) and Always Full (0.649), and does so while bypassing text on 37.6\% of samples. In all cases CG-Net matches or beats static full fusion \emph{without ever underperforming its topology-only branch}, while adding a controllable efficiency dimension through selective text bypass.
+
+\subsection{Clean-Text Robustness Check}
+\label{sec:cleantext}
+The original MUTAG node texts are generated by a template that includes label-correlated keywords (e.g., ``classified as mutagenic''). To rule out label leakage, we re-generated texts that retain only topological descriptors (atom symbol, degree, neighbour-bond descriptions) and retrained all methods. TextGCN then collapses to the accuracy range shown in Table~\ref{tab:sota}, confirming that its earlier template-text lead was leakage-driven rather than genuine semantics. Under these texts, static full fusion (Always Full) is actively harmed (0.649) by the noisy text, whereas CG-Net (0.737) equals the topology-only Drop-Text ceiling: the Soft Masker detects the unreliable text, sets $s_T\approx0$, and falls back to the reliable graph answer rather than extracting non-existent text signal.
+
+\subsection{Surface-Noise Robustness Check}
+\label{sec:surfacenoise}
+To address the surface-noise failure mode (typos, OCR errors) that real deployments face, we perturb the node text of NLM-Chem at the character level before evaluation and re-run the pipeline unchanged. Corruption is applied only to the frozen text inputs---graph structure, model weights, and the routing threshold are untouched---so the experiment isolates how much a degraded text modality threatens static fusion relative to CG-Net. Table~\ref{tab:noise} reports the results. As the per-character typo rate rises from 0 to 0.3, static full fusion (Always Full) degrades monotonically from 0.967 to 0.900, while CG-Net stays at 1.0000 throughout: the Soft Masker drives $s_T$ to $\sim$0.003 and falls back to the reliable topology branch. OCR-style character confusions produce a smaller yet consistent drop in full fusion (to 0.933), with CG-Net again unaffected. We note the caveat that NLM-Chem has only 30 test nodes, so each 0.033 step corresponds to a single node; the direction of the effect is consistent, but its magnitude should be read with that granularity in mind.
+
+\begin{table}[!t]
+\centering
+\small
+\caption{Surface-noise robustness on NLM-Chem (30 test nodes). Static full fusion (Always Full) degrades under both per-character typos and OCR-style confusions, while CG-Net stays at 1.0000 via the Soft Masker's modality-safe fallback (Drop Text is text-free and therefore unaffected). Each 0.033 accuracy step is one test node, so the accuracy grid is correspondingly coarse.}
+\label{tab:noise}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{l ccc ccc}
+\toprule
+ & \multicolumn{3}{c}{Per-character typos} & \multicolumn{3}{c}{OCR-style confusions} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+rate & Always Full & Drop Text & \textbf{CG-Net} & Always Full & Drop Text & \textbf{CG-Net} \\
+\midrule
+0.0  & 0.9667 & 1.0000 & \textbf{1.0000} & 0.9667 & 1.0000 & \textbf{1.0000} \\
+0.15 & 0.9333 & 1.0000 & \textbf{1.0000} & 0.9333 & 1.0000 & \textbf{1.0000} \\
+0.3  & 0.9000 & 1.0000 & \textbf{1.0000} & 0.9333 & 1.0000 & \textbf{1.0000} \\
+0.5  & 0.9000 & 1.0000 & \textbf{1.0000} & 0.9333 & 1.0000 & \textbf{1.0000} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Threshold Sensitivity and Multimodal Paradigm Analysis}
+This subsection explores the influence of threshold $\tau$ on model performance and efficiency, and summarizes the interaction patterns observed in our benchmarks (the Graph-Dominant pattern across all three datasets, alongside the Synergistic design target and the theoretical Interfering regime formalized in \S\ref{sec:paradigms}).
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{fig_paradigms.png}
+    \caption{Accuracy curves across thresholds. All three benchmarks are Graph-Dominant: accuracy stays invariant in $\tau$ while the text-bypass ratio rises, so $\tau$ acts as a computation cost knob with no accuracy penalty. Only internal pipeline-ablation results are shown (numerical values in Table~\ref{tab:tau_sweep}).}
+    \label{fig:three_paradigm_curve}
+\end{figure}
+Table~\ref{tab:tau_sweep} records accuracy and bypass ratio under varied threshold values. Across all three benchmarks, accuracy is invariant in $\tau$ while the bypass ratio rises monotonically: these datasets are all Graph-Dominant, where topological features alone carry sufficient discriminative information and text never yields an accuracy gain. $\tau$ therefore acts as a clean efficiency knob---raising it skips more text computation with no accuracy cost---while the Soft Masker keeps the hard-subset prediction safe by falling back to the topology branch whenever text is unreliable ($s_T\to0$). Figure \ref{fig:three_paradigm_curve} visualizes these accuracy curves directly. This verifies the rationality of coarse-to-fine gating: CG-Net adapts to datasets of varying text relevance without ever sacrificing its topology-only branch.
+
+\subsection{Efficiency Analysis via Text Bypass}
+\label{sec:overhead_analysis}
+We adopt the text bypass ratio as the routing-level efficiency metric: the fraction of test samples whose text encoding is entirely skipped by the Hard Router. As shown in Table~\ref{tab:ablation}, CG-Net achieves 37.6\%, 90.0\%, and 76.9\% text bypass on MUTAG, NLM-Chem, and PQARef at $\tau=0.7$. Beyond the routing statistic, Table~\ref{tab:efficiency} reports measured GPU latency of the two branches and the implied workload that the router removes. Three points deserve emphasis. \emph{First}, the text-encoding share of a fused forward is dataset-dependent---it dominates on MUTAG (60.5\% of a full forward) but is modest on NLM-Chem (13.2\%) and PQARef (16.6\%)---so the reduction range (37.6\%--90.0\%) reported in the abstract refers to the \emph{fraction of text encodings skipped}, not to end-to-end latency. \emph{Second}, the Soft Masker---a per-sample 20-epoch test-time optimization---is the dominant fine-grained cost ($\sim$205--260\,ms per hard node in our measurement), which is why CG-Net confines it to the hard minority: it runs on 62.4\%, 10.0\%, and 23.1\% of the test set on the three benchmarks, versus 100\% for Variant B. \emph{Third}, because of that optimization cost, CG-Net does \emph{not} claim an end-to-end wall-clock speedup over static fusion on these small graphs; its honest efficiency contribution is (a) skipping text encoding on the topology-sufficient majority and (b) spending the expensive fine refinement only where topology alone is ambiguous.
+
+\begin{table}[!t]
+\centering
+\small
+\caption{Measured per-branch latency and text-workload shares at $\tau=0.7$. \texttt{Soft scope} is the fraction of test nodes that pay the test-time mask optimization. Absolute timings depend on the evaluation hardware described in Section~\ref{sec:overhead_analysis}; relative shares are architecture-level.}
+\label{tab:efficiency}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{l cccccc}
+\toprule
+Dataset & Test & Bypass & Full fwd & Graph-only & Text-share & Soft scope \\
+\midrule
+MUTAG    & 502 & 37.6\% & 52.7\,ms & 20.8\,ms & 60.5\% & 62.4\% \\
+NLM-Chem &  30 & 90.0\% &  2.9\,ms &  2.6\,ms & 13.2\% & 10.0\% \\
+PQARef   & 307 & 76.9\% & 32.0\,ms & 26.7\,ms & 16.6\% & 23.1\% \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Compared with Variant B that runs token optimization on all samples, CG-Net limits mask optimization to hard samples only, cutting the number of (costly) Soft Masker invocations to 62.4\%, 10.0\%, and 23.1\% of the test set accordingly. The efficiency gain is therefore twofold and complementary: massive easy samples fully skip the text branch, and the expensive fine-grained refinement is spent only where the coarse router deems topology insufficient---never on the whole test split.
+
+\subsection{Fidelity Note}
+We adopt perturbation-based Fidelity$^\pm$ as a sanity check of explanation quality on the edge-level informative subgraphs extracted by $M_G$: Fidelity$^+$ measures whether the model's prediction is preserved when the informative edges are retained, and Fidelity$^-$ measures whether the prediction flips when these edges are removed. These metrics are reported as an internal sanity check of the extracted subgraphs rather than a comparative measure across gating variants, for which we rely on accuracy and the text-bypass ratio above.
+
+\subsection{Case Study Analysis}
+Several representative graph instances are adopted to verify the effectiveness of our dual-gating design. Samples with high topological confidence (Node 105, 120, 2842) can omit text branches through the Hard Router with stable predictive performance. For Node 326 with unreliable structural information, the Soft Masker suppresses noisy text tokens and adaptively re-weights the graph/text fusion through $s_T$ to favor the more reliable modality, mitigating the graph--text disagreement rather than correcting an intrinsically wrong prediction.
+As shown in Figure \ref{fig:case_study}, these intuitive cases concretely manifest the respective functions of Hard Router and Soft Masker modules.
+
+\begin{figure}[!t]
+\centering
+\begin{subfigure}{0.47\linewidth}
+\centering
+\includegraphics[width=\linewidth]{case_hard_105.png}
+\caption{Easy sample (Node 105): text skipped by the Hard Router ($\mathcal{M}=0.748>\tau$)}
+\label{sub:case105}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.47\linewidth}
+\centering
+\includegraphics[width=\linewidth]{case_hard_120.png}
+\caption{Easy sample (Node 120): text skipped by the Hard Router ($\mathcal{M}=0.791>\tau$)}
+\label{sub:case120}
+\end{subfigure}
+
+\vspace{1.8mm}
+\begin{subfigure}{0.47\linewidth}
+\centering
+\includegraphics[width=\linewidth]{case_hard_2842.png}
+\caption{Easy sample (Node 2842): text skipped by the Hard Router ($\mathcal{M}=0.800>\tau$)}
+\label{sub:case2842}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.47\linewidth}
+\centering
+\includegraphics[width=\linewidth]{case_soft_326.png}
+\caption{Hard sample (Node 326): modality-safe fallback via the Soft Masker ($\mathcal{M}=0.452\le\tau$)}
+\label{sub:case326}
+\end{subfigure}
+
+\caption{Qualitative case studies for dual gating. The top three easy samples skip text processing entirely via the Hard Router; the bottom hard sample shows the Soft Masker driving $s_T$ to $\sim$0 to fall back to the reliable topology answer, rather than overwriting an intrinsically wrong prediction with text.}
+\label{fig:case_study}
+\end{figure}
+
+\begin{table}[!htbp]
+\centering
+\small
+\caption{Multi-seed accuracy for internal variants, with std in brackets. Results are identical across the five fixed seeds (42, 123, 456, 789, 1024) because the anchored mask objective makes downstream predictions seed-invariant; the corresponding paired tests are discussed in Section~\ref{sec:significance}.}
+\label{tab:multiseed}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{lccccc}
+\toprule
+Dataset & Always Full & Drop Text & Variant A & Variant B & CG-Net \\
+\midrule
+MUTAG    & 64.94(0.00) & 73.71(0.00) & 64.94(0.00) & 73.71(0.00) & 73.71(0.00) \\
+NLM-Chem & 96.67(0.00) & 100.00(0.00) & 96.67(0.00) & 100.00(0.00) & 100.00(0.00) \\
+PQARef   & 93.49(0.00) & 93.49(0.00) & 93.49(0.00) & 93.49(0.00) & 93.49(0.00) \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\subsection{Selective-Processing Control (Routing-Only)}
+\label{sec:selective_comp}
+To situate CG-Net against the selective language-processing line (GLANCE~\citep{loveland2026glance}, GraphBridge~\citep{wang2024graphbridge}), we report a routing-only control that mirrors their core idea: it decides \emph{per instance} whether to invoke text encoding via a confidence threshold, exactly as our Hard Router does, but it \textbf{skips the Stage-2 refinement}. This corresponds to Variant A in Table~\ref{tab:ablation}. The comparison isolates the added value of the coarse-to-fine refinement on top of plain conditional routing.
+
+The results show that conditional routing alone does not recover accuracy over always-full fusion: on MUTAG, Variant A matches Always Full (0.649), because hard samples still fuse the same noisy raw text. Only when routing is paired with the test-time Soft Masker (CG-Net) is the unreliable hard-subset text suppressed ($s_T\to0$), recovering 0.737 from the text-polluted 0.649 while bypassing text for the easy majority. On graph-dominant NLM-Chem and PQARef, routing alone already preserves accuracy; refinement adds little but never hurts. Thus, consistent with GLANCE's conditional-invocation motivation, per-instance text deactivation is primarily an efficiency mechanism, and the Soft Masker additionally provides modality-safety by refusing untrustworthy text rather than claiming to extract signal from it. A full reproduction of GLANCE's learned router and GraphBridge's token reduction is beyond the scope of this work; we provide this routing-only control as an honest proxy on identical data and model, and refer to the qualitative discussion above for those systems.
+\subsection{Statistical Significance}
+\label{sec:significance}
+We run experiments with five fixed random seeds (42, 123, 456, 789, 1024) under consistent data splits. Table~\ref{tab:multiseed} shows fully deterministic results across seeds for every method: once the Soft Masker is seeded and its objective anchored to the graph-only prediction, the optimal mask (and hence $s_T\approx0$) reproduces exactly, so all variants are seed-invariant on all three benchmarks. Because there is no seed variance, the standard paired t-test is degenerate; we therefore report that CG-Net's recovery over the relevant static-fusion baseline holds exactly on every seed (on MUTAG 0.737 vs a label-corrupted 0.649; on NLM-Chem 1.000 vs 0.967), and that it matches the best single modality on all datasets.
+
+\subsection{Limitations and Application Context}
+We ground the modality-safe claims in the concrete failure modes that motivate them, and state plainly which of them our experiments cover. In deployed TAG systems the textual modality is commonly degraded in one of several ways: (i) systematic label-correlated content injected into node descriptions, (ii) label-independent text that carries no discriminative signal (e.g. privacy-redacted or boilerplate text), (iii) surface noise such as OCR errors, typos, and abbreviations, and (iv) adversarial injection. Our experiments provide controlled evidence for the first three modes and are silent on adversarial injection. On MUTAG, whose node texts are template-generated and label-correlated, static full fusion drops from 0.737 to 0.649 and the Soft Masker recovers 0.737 (mode i). On NLM-Chem, whose texts are label-independent but carry no discriminative signal (0.9667 in Always Full vs 1.0000 in Drop-Text, because the text branch only adds noise to the fusion), surface noise provides an independent confirmation: Section~\ref{sec:surfacenoise} and Table~\ref{tab:noise} show typo corruption monotonically rates full fusion down while CG-Net stays at 1.0000, and OCR-style confusions shift full fusion to 0.933 with CG-Net again unaffected (mode iii). On PQARef (mode ii), text never carries effective signal and CG-Net simply skips it without any accuracy penalty. What we do not cover is (iv) adversarial injection, and our test splits are small (30--502 nodes), so the statistical granularity of the robustness measurements is coarse; evaluating modality safety on a large, genuinely noisy TAG benchmark is left to future work. These are precisely the limitations we wish to be transparent about rather than to obscure.
+
+\section{Conclusion}
+We propose CG-Net, a confidence-based coarse-to-fine dual-gating framework to mitigate the accuracy-efficiency tradeoff in static multimodal text-attributed graph (TAG) learning. CG-Net adaptively feeds topology-sufficient nodes into lightweight graph-only computation and reserves the Soft Masker for the ambiguous minority, achieving efficient multimodal reasoning. Evaluated on MUTAG, NLM-Chem and PQARef, CG-Net never underperforms its own topology-only branch while cutting textual computation (the number of text encodings performed) by up to 90\%. Its central, honestly-quantified value is modality-safety: on datasets where text is noisy or uninformative, the Soft Masker drives the text weight to zero and falls back to the reliable topology answer, recovering accuracy lost by static full fusion rather than claiming an accuracy gain that the data does not support. Our analysis characterizes the Graph-Dominant interaction regime observed across all three benchmarks and formalizes the Synergistic regime that adaptive multimodal TAG learning should target on richer datasets. Viewed as a component of a deployed TAG system, CG-Net provides graceful degradation: it keeps the reliable topology branch serving when text is degraded or uninformative, and never lets an unreliable modality drag predictions down. Overall, confidence-aware adaptive computation proves a viable and robust paradigm for building reliable and efficient multimodal TAG systems. Future work will extend CG-Net to multi-relational graphs, LLM-enhanced GraphRAG, and fully learnable adaptive routing policies.
+
+\section*{Data availability}
+The datasets (MUTAG, NLM-Chem, PQARef) that support the findings of this study are publicly available benchmarks; please refer to the respective original publications. \citep{debnath1998mutag,leaman2021nlmchem,han2020pqaref}
+The source code used for the experiments will be made available upon acceptance.
+
+\bibliographystyle{elsarticle-harv}
+\bibliography{refs}
+
+\end{document}
+

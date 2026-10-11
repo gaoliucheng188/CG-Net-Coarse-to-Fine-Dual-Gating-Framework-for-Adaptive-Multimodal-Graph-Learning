@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/home/liuchenggao/Desktop/Second/gnn-model-explainer-master1/train.py", line 36, in <module>
+    import torch
+  File "/home/liuchenggao/miniconda3/envs/pytorch/lib/python3.9/site-packages/torch/__init__.py", line 2150, in <module>
+    from torch import _VF as _VF, functional as functional  # usort: skip
+  File "/home/liuchenggao/miniconda3/envs/pytorch/lib/python3.9/site-packages/torch/functional.py", line 8, in <module>
+    import torch.nn.functional as F
+  File "/home/liuchenggao/miniconda3/envs/pytorch/lib/python3.9/site-packages/torch/nn/__init__.py", line 8, in <module>
+    from torch.nn.modules import *  # usort: skip # noqa: F403
+  File "/home/liuchenggao/miniconda3/envs/pytorch/lib/python3.9/site-packages/torch/nn/modules/__init__.py", line 157, in <module>
+    from .rnn import GRU, GRUCell, LSTM, LSTMCell, RNN, RNNBase, RNNCell, RNNCellBase
+  File "/home/liuchenggao/miniconda3/envs/pytorch/lib/python3.9/site-packages/torch/nn/modules/rnn.py", line 14, in <module>
+    from torch.nn.utils.rnn import PackedSequence
+  File "/home/liuchenggao/miniconda3/envs/pytorch/lib/python3.9/site-packages/torch/nn/utils/__init__.py", line 1, in <module>
+    from . import parametrizations, rnn, stateless
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 846, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 978, in get_code
+  File "<frozen importlib._bootstrap_external>", line 647, in _compile_bytecode
+KeyboardInterrupt
