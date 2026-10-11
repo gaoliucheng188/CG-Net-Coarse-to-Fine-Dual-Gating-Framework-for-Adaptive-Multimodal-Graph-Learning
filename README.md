@@ -24,7 +24,6 @@ Core implementation is in [`models_multimodal.py`](models_multimodal.py), [`mult
 | `explainer_main.py` | Run the explanation workflow. |
 | `models.py`, `models_multimodal.py`, `models_pyg.py` | Graph and multimodal model implementations. |
 | `multimodal/` | Text/image encoders and multimodal fusion modules. |
-| `data/` | Dataset loader, raw/processed data, and generated modalities. |
 | `scripts/` | Dataset preparation and experiment runners. |
 | `analysis_scripts/` | Result analysis, reporting, and visualization utilities. |
 
