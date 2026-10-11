@@ -1,2 +1,0 @@
-Dataset,Variant,Baseline_Variant,Baseline_F+,Gated_F+,F+_Improvement,Baseline_F-,Gated_F-,F-_Improvement
-pqaref,Gated,Baseline,0.0,0.0633178055286407,0.0633178055286407,0.0586985945701599,1.7171104749042758e-05,-0.05868142346541085

@@ -1,6 +1,0 @@
-file,fidelity_plus,fidelity_minus
-masked_adj_pqaref_base_h128_o128_explainnode_idx_0graph_idx_-1.npy,0.05167531967163086,-1.0728836059570312e-05
-masked_adj_pqaref_base_h128_o128_explain__B0node_idx_0graph_idx_-1.npy,0.0876430869102478,0.0
-masked_adj_pqaref_base_h128_o128_explain__B1node_idx_0graph_idx_-1.npy,0.0876430869102478,0.0
-masked_adj_pqaref_base_h128_o128_explain__B2node_idx_0graph_idx_-1.npy,0.0876430869102478,0.0
-masked_adj_pqaref_base_h128_o128_explain__B3node_idx_0graph_idx_-1.npy,0.0876430869102478,0.0
