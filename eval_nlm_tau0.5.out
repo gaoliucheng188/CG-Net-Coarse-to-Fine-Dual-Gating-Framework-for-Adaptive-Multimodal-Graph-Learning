@@ -1,28 +1,0 @@
-/home/liuchenggao/Desktop/Second/gnn-model-explainer-master1/utils/gengraph.py:83: FutureWarning: adjacency_matrix will return a scipy.sparse array instead of a matrix in Networkx 3.0.
-  adj = np.array(nx.adjacency_matrix(G).todense())
-Loading nlm_chem dataset for Explainer-Guided Gating...
-Loading multimodal features...
-Initializing Multi-modal GNN Model...
-[arch] fusion=concat project_concat=True text_dim=128 image_dim=128 disable_text=False disable_image=True pred_in=128 graph_dim_full=384 num_gc_layers=3
-[load] unexpected keys (first 8): ['celoss.weight']
-Pre-computing baseline predictions...
-
-Starting Architectural Ablation & Gating Evaluation (tau=0.5)...
-⚠️  Note: This run includes 'Soft Fusion Only' variant, which forces Explainer on ALL samples. It may take longer.
-  0%|          | 0/30 [00:00<?, ?it/s]  3%|▎         | 1/30 [00:00<00:24,  1.16it/s]  7%|▋         | 2/30 [00:01<00:17,  1.65it/s] 10%|█         | 3/30 [00:01<00:15,  1.78it/s] 13%|█▎        | 4/30 [00:02<00:13,  1.94it/s] 17%|█▋        | 5/30 [00:02<00:12,  2.03it/s] 20%|██        | 6/30 [00:03<00:12,  1.88it/s] 23%|██▎       | 7/30 [00:03<00:11,  1.95it/s] 27%|██▋       | 8/30 [00:04<00:10,  2.10it/s] 30%|███       | 9/30 [00:04<00:10,  2.09it/s] 33%|███▎      | 10/30 [00:05<00:10,  1.85it/s] 37%|███▋      | 11/30 [00:05<00:09,  1.98it/s] 40%|████      | 12/30 [00:06<00:08,  2.09it/s] 43%|████▎     | 13/30 [00:06<00:08,  1.99it/s] 47%|████▋     | 14/30 [00:07<00:07,  2.03it/s] 50%|█████     | 15/30 [00:07<00:07,  2.11it/s] 53%|█████▎    | 16/30 [00:08<00:06,  2.07it/s] 57%|█████▋    | 17/30 [00:08<00:06,  2.06it/s] 60%|██████    | 18/30 [00:09<00:06,  1.96it/s] 63%|██████▎   | 19/30 [00:09<00:05,  1.97it/s] 67%|██████▋   | 20/30 [00:10<00:05,  1.97it/s] 70%|███████   | 21/30 [00:10<00:04,  1.97it/s] 73%|███████▎  | 22/30 [00:11<00:04,  2.00it/s] 77%|███████▋  | 23/30 [00:11<00:03,  2.00it/s] 80%|████████  | 24/30 [00:12<00:02,  2.09it/s] 83%|████████▎ | 25/30 [00:12<00:02,  2.19it/s] 87%|████████▋ | 26/30 [00:12<00:01,  2.22it/s] 90%|█████████ | 27/30 [00:13<00:01,  2.20it/s] 93%|█████████▎| 28/30 [00:13<00:00,  2.27it/s] 97%|█████████▋| 29/30 [00:14<00:00,  2.22it/s]100%|██████████| 30/30 [00:14<00:00,  2.11it/s]100%|██████████| 30/30 [00:14<00:00,  2.02it/s]
-
-===========================================================================
-🧩 Architectural Ablation Results (Dual Gating Framework) 🧩
-===========================================================================
-1. Baseline (Always Full)            : 1.0000
-2. Ablation (Always Drop Text)       : 1.0000
----------------------------------------------------------------------------
-3. Variant A (Hard Router Only)      : 1.0000
-   -> Details: margin>0.5 drops text, else uses raw Full model.
-4. Variant B (Soft Fusion Only)      : 1.0000
-   -> Details: Forces Explainer on 100% samples (Heavy computation!).
----------------------------------------------------------------------------
-🚀 OURS (Dual Gating Framework)      : 1.0000 🌟
-   -> Hard Bypassed Text (O(1))      : 29 / 30 samples
-   -> Avg Soft Text Attention (Rest) : 0.772218
-===========================================================================
